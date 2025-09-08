@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yes KRP - Торговля акциями</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 15px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2e57a8 100%);
+            color: white;
+            padding: 20px 15px;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+        
+        .balance-card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+        
+        .balance-title {
+            font-size: 16px;
+            color: #a0a0a0;
+            margin-bottom: 5px;
+        }
+        
+        .balance-amount {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4f8cff;
+        }
+        
+        .section {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #4f8cff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: #4f8cff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .stock-item, .portfolio-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .stock-item:last-child, .portfolio-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stock-info, .portfolio-info {
+            flex: 1;
+        }
+        
+        .stock-symbol {
+            font-weight: bold;
+            color: #e0e0e0;
+        }
+        
+        .stock-name {
+            font-size: 14px;
+            color: #a0a0a0;
+        }
+        
+        .stock-price {
+            font-weight: bold;
+            text-align: right;
+            color: #e0e0e0;
+        }
+        
+        .price-change {
+            font-size: 14px;
+            text-align: right;
+        }
+        
+        .positive {
+            color: #4caf50;
+        }
+        
+        .negative {
+            color: #f44336;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: #2e57a8;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: #2d3748;
+            color: #a0a0a0;
+        }
+        
+        .btn-success {
+            background-color: #2e7d32;
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: #c62828;
+            color: white;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+        
+        .tab-navigation {
+            display: flex;
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid #333;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            color: #a0a0a0;
+            transition: background-color 0.2s;
+        }
+        
+        .tab-btn.active {
+            color: #4f8cff;
+            background-color: #2d3748;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #a0a0a0;
+        }
+        
+        .transaction-form {
+            padding: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #e0e0e0;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #2d3748;
+            color: #e0e0e0;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #2d3748;
+            color: #e0e0e0;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 20px;
+            border-radius: 8px;
+            background-color: #2e7d32;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .notification.error {
+            background-color: #c62828;
+        }
+        
+        .notification.show {
+            opacity: 1;
+        }
+        
+        /* Стили для скроллбара */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #2e57a8;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b67c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Yes KRP</h1>
+            <p>Торговая площадка акций</p>
+        </header>
+        
+        <div class="balance-card">
+            <div class="balance-title">Ваш баланс</div>
+            <div class="balance-amount" id="userBalance">$1000.00</div>
+        </div>
+        
+        <div class="tab-navigation">
+            <button class="tab-btn active" data-tab="stocks">Акции</button>
+            <button class="tab-btn" data-tab="portfolio">Портфель</button>
+            <button class="tab-btn" data-tab="trade">Торговля</button>
+        </div>
+        
+        <div class="tab-content active" id="stocks-tab">
+            <div class="section">
+                <div class="section-title">
+                    Доступные акции
+                    <button class="refresh-btn" id="refreshStocks">⟳</button>
+                </div>
+                <div id="stocksList">
+                    <div class="loading">Загрузка акций...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="portfolio-tab">
+            <div class="section">
+                <div class="section-title">
+                    Ваш портфель
+                    <button class="refresh-btn" id="refreshPortfolio">⟳</button>
+                </div>
+                <div id="portfolioList">
+                    <div class="loading">Загрузка портфеля...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="trade-tab">
+            <div class="section">
+                <div class="section-title">Торговля</div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="buyBtn">Купить</button>
+                    <button class="btn btn-danger" id="sellBtn">Продать</button>
+                </div>
+                
+                <div id="tradeForm" style="display: none;">
+                    <div class="transaction-form">
+                        <div class="form-group">
+                            <label class="form-label" for="stockSelect">Акция</label>
+                            <select class="form-select" id="stockSelect">
+                                <option value="">Выберите акцию</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="quantityInput">Количество</label>
+                            <input type="number" class="form-input" id="quantityInput" min="1" placeholder="Введите количество">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Стоимость</label>
+                            <div id="tradeCost">$0.00</div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" id="cancelTrade">Отмена</button>
+                            <button class="btn btn-success" id="confirmTrade">Подтвердить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        // Данные приложения
+        let userData = {
+            balance: 1000.00,
+            stocks: [],
+            portfolio: []
+        };
+        
+        // DOM элементы
+        const stocksList = document.getElementById('stocksList');
+        const portfolioList = document.getElementById('portfolioList');
+        const userBalance = document.getElementById('userBalance');
+        const tradeForm = document.getElementById('tradeForm');
+        const stockSelect = document.getElementById('stockSelect');
+        const quantityInput = document.getElementById('quantityInput');
+        const tradeCost = document.getElementById('tradeCost');
+        const notification = document.getElementById('notification');
+        
+        // Инициализация приложения
+        document.addEventListener('DOMContentLoaded', function() {
+            initTabs();
+            loadData();
+            setupEventListeners();
+        });
+        
+        // Инициализация табов
+        function initTabs() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Активируем выбранную вкладку
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                    
+                    // Обновляем данные при переключении вкладок
+                    if (tabId === 'stocks') {
+                        loadStocks();
+                    } else if (tabId === 'portfolio') {
+                        loadPortfolio();
+                    }
+                });
+            });
+        }
+        
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            // Кнопки обновления
+            document.getElementById('refreshStocks').addEventListener('click', loadStocks);
+            document.getElementById('refreshPortfolio').addEventListener('click', loadPortfolio);
+            
+            // Кнопки покупки/продажи
+            document.getElementById('buyBtn').addEventListener('click', function() {
+                showTradeForm('buy');
+            });
+            
+            document.getElementById('sellBtn').addEventListener('click', function() {
+                showTradeForm('sell');
+            });
+            
+            // Кнопка отмены торговли
+            document.getElementById('cancelTrade').addEventListener('click', function() {
+                tradeForm.style.display = 'none';
+                resetTradeForm();
+            });
+            
+            // Кнопка подтверждения торговли
+            document.getElementById('confirmTrade').addEventListener('click', executeTrade);
+            
+            // Изменение количества акций
+            quantityInput.addEventListener('input', updateTradeCost);
+            
+            // Изменение выбранной акции
+            stockSelect.addEventListener('change', updateTradeCost);
+        }
+        
+        // Загрузка всех данных
+        function loadData() {
+            loadStocks();
+            loadPortfolio();
+            updateBalance();
+        }
+        
+        // Загрузка списка акций
+        function loadStocks() {
+            stocksList.innerHTML = '<div class="loading">Загрузка акций...</div>';
+            
+            // В реальном приложении здесь будет запрос к API бота
+            // Для демонстрации используем mock-данные
+            setTimeout(() => {
+                userData.stocks = [
+                    { symbol: 'KRP', name: 'KRP Corporation', price: 0.15, change: 0.02 },
+                    { symbol: 'CATS', name: 'Cat\'s Company', price: 0.12, change: -0.01 },
+                    { symbol: 'YOU', name: 'You? Inc', price: 0.18, change: 0.05 },
+                    { symbol: 'TECH', name: 'Tech Solutions', price: 0.22, change: 0.03 }
+                ];
+                
+                renderStocks();
+            }, 1000);
+        }
+        
+        // Загрузка портфеля
+        function loadPortfolio() {
+            portfolioList.innerHTML = '<div class="loading">Загрузка портфеля...</div>';
+            
+            // В реальном приложении здесь будет запрос к API бота
+            // Для демонстрации используем mock-данные
+            setTimeout(() => {
+                userData.portfolio = [
+                    { symbol: 'KRP', name: 'KRP Corporation', quantity: 150, avgPrice: 0.12, currentPrice: 0.15 },
+                    { symbol: 'TECH', name: 'Tech Solutions', quantity: 80, avgPrice: 0.20, currentPrice: 0.22 }
+                ];
+                
+                renderPortfolio();
+            }, 1000);
+        }
+        
+        // Обновление баланса
+        function updateBalance() {
+            userBalance.textContent = `$${userData.balance.toFixed(2)}`;
+        }
+        
+        // Отображение списка акций
+        function renderStocks() {
+            if (userData.stocks.length === 0) {
+                stocksList.innerHTML = '<div class="loading">Нет доступных акций</div>';
+                return;
+            }
+            
+            let html = '';
+            userData.stocks.forEach(stock => {
+                const changePercent = (stock.change / (stock.price - stock.change) * 100).toFixed(2);
+                const isPositive = stock.change >= 0;
+                
+                html += `
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <div class="stock-symbol">${stock.symbol}</div>
+                            <div class="stock-name">${stock.name}</div>
+                        </div>
+                        <div>
+                            <div class="stock-price">$${stock.price.toFixed(2)}</div>
+                            <div class="price-change ${isPositive ? 'positive' : 'negative'}">
+                                ${isPositive ? '+' : ''}${changePercent}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            stocksList.innerHTML = html;
+        }
+        
+        // Отображение портфеля
+        function renderPortfolio() {
+            if (userData.portfolio.length === 0) {
+                portfolioList.innerHTML = '<div class="loading">Портфель пуст</div>';
+                return;
+            }
+            
+            let html = '';
+            userData.portfolio.forEach(item => {
+                const totalValue = item.quantity * item.currentPrice;
+                const totalInvested = item.quantity * item.avgPrice;
+                const profit = totalValue - totalInvested;
+                const profitPercent = (profit / totalInvested * 100).toFixed(2);
+                const isPositive = profit >= 0;
+                
+                html += `
+                    <div class="portfolio-item">
+                        <div class="portfolio-info">
+                            <div class="stock-symbol">${item.symbol}</div>
+                            <div class="stock-name">${item.name}</div>
+                            <div>${item.quantity} акций</div>
+                        </div>
+                        <div>
+                            <div class="stock-price">$${totalValue.toFixed(2)}</div>
+                            <div class="price-change ${isPositive ? 'positive' : 'negative'}">
+                                ${isPositive ? '+' : ''}${profitPercent}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            portfolioList.innerHTML = html;
+        }
+        
+        // Показать форму торговли
+        function showTradeForm(type) {
+            // Очищаем выпадающий список
+            stockSelect.innerHTML = '<option value="">Выберите акцию</option>';
+            
+            // Заполняем выпадающий список в зависимости от типа операции
+            const sourceData = type === 'buy' ? userData.stocks : userData.portfolio;
+            
+            sourceData.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.symbol;
+                option.textContent = `${item.symbol} - ${item.name} ($${item.currentPrice.toFixed(2)})`;
+                stockSelect.appendChild(option);
+            });
+            
+            // Настраиваем кнопку подтверждения
+            const confirmBtn = document.getElementById('confirmTrade');
+            if (type === 'buy') {
+                confirmBtn.textContent = 'Купить';
+                confirmBtn.className = 'btn btn-success';
+            } else {
+                confirmBtn.textContent = 'Продать';
+                confirmBtn.className = 'btn btn-danger';
+            }
+            
+            // Сохраняем тип операции в кнопке для использования при подтверждении
+            confirmBtn.setAttribute('data-trade-type', type);
+            
+            // Показываем форму
+            tradeForm.style.display = 'block';
+        }
+        
+        // Сброс формы торговли
+        function resetTradeForm() {
+            stockSelect.selectedIndex = 0;
+            quantityInput.value = '';
+            tradeCost.textContent = '$0.00';
+        }
+        
+        // Обновление стоимости сделки
+        function updateTradeCost() {
+            const symbol = stockSelect.value;
+            const quantity = parseInt(quantityInput.value) || 0;
+            
+            if (!symbol || quantity <= 0) {
+                tradeCost.textContent = '$0.00';
+                return;
+            }
+            
+            // Находим выбранную акцию
+            let stock = null;
+            const tradeType = document.getElementById('confirmTrade').getAttribute('data-trade-type');
+            
+            if (tradeType === 'buy') {
+                stock = userData.stocks.find(s => s.symbol === symbol);
+            } else {
+                stock = userData.portfolio.find(s => s.symbol === symbol);
+            }
+            
+            if (stock) {
+                const cost = quantity * stock.currentPrice;
+                tradeCost.textContent = `$${cost.toFixed(2)}`;
+            }
+        }
+        
+        // Выполнение сделки
+        function executeTrade() {
+            const symbol = stockSelect.value;
+            const quantity = parseInt(quantityInput.value) || 0;
+            const tradeType = this.getAttribute('data-trade-type');
+            
+            if (!symbol) {
+                showNotification('Выберите акцию', true);
+                return;
+            }
+            
+            if (quantity <= 0) {
+                showNotification('Введите корректное количество', true);
+                return;
+            }
+            
+            // Находим выбранную акцию
+            let stock = null;
+            if (tradeType === 'buy') {
+                stock = userData.stocks.find(s => s.symbol === symbol);
+                
+                // Проверяем достаточно ли средств
+                const cost = quantity * stock.price;
+                if (cost > userData.balance) {
+                    showNotification('Недостаточно средств', true);
+                    return;
+                }
+                
+                // Выполняем покупку
+                userData.balance -= cost;
+                
+                // Обновляем портфель
+                const existingItem = userData.portfolio.find(item => item.symbol === symbol);
+                if (existingItem) {
+                    // Пересчитываем среднюю цену
+                    const totalQuantity = existingItem.quantity + quantity;
+                    const totalInvested = (existingItem.quantity * existingItem.avgPrice) + (quantity * stock.price);
+                    existingItem.avgPrice = totalInvested / totalQuantity;
+                    existingItem.quantity = totalQuantity;
+                } else {
+                    // Добавляем новую позицию
+                    userData.portfolio.push({
+                        symbol: stock.symbol,
+                        name: stock.name,
+                        quantity: quantity,
+                        avgPrice: stock.price,
+                        currentPrice: stock.price
+                    });
+                }
+                
+                showNotification(`Успешно куплено ${quantity} акций ${symbol}`);
+            } else {
+                stock = userData.portfolio.find(s => s.symbol === symbol);
+                
+                // Проверяем достаточно ли акций
+                if (quantity > stock.quantity) {
+                    showNotification('Недостаточно акций для продажи', true);
+                    return;
+                }
+                
+                // Выполняем продажу
+                const revenue = quantity * stock.currentPrice;
+                userData.balance += revenue;
+                
+                // Обновляем портфель
+                stock.quantity -= quantity;
+                if (stock.quantity === 0) {
+                    // Удаляем позицию если акций не осталось
+                    userData.portfolio = userData.portfolio.filter(item => item.symbol !== symbol);
+                }
+                
+                showNotification(`Успешно продано ${quantity} акций ${symbol}`);
+            }
+            
+            // Обновляем интерфейс
+            updateBalance();
+            loadPortfolio();
+            
+            // Скрываем форму
+            tradeForm.style.display = 'none';
+            resetTradeForm();
+        }
+        
+        // Показать уведомление
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.className = isError ? 'notification error show' : 'notification show';
+            
+            setTimeout(() => {
+                notification.className = 'notification';
+            }, 3000);
+        }
+        
+        // Имитация получения данных от бота
+        tg.onEvent('viewportChanged', function(e) {
+            console.log('Viewport changed:', e);
+        });
+        
+        // Основная кнопка (если нужна)
+        tg.MainButton.setText('Обновить данные');
+        tg.MainButton.show();
+        tg.MainButton.onClick(loadData);
+    </script>
+</body>
+</html>
