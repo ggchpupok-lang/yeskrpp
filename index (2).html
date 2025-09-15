@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yes KRP Trading - Тапалка</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-tertiary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --accent: #bb86fc;
+            --positive: #4caf50;
+            --negative: #f44336;
+            --border: #333333;
+            --coin: #ffd700;
+            --apple: #ff6b6b;
+            --bear: #8d6e63;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 16px;
+            max-width: 100%;
+            overflow-x: hidden;
+            padding-bottom: 70px; /* Для нижней навигации */
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .currency-display {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .currency-item {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 12px;
+            flex: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .currency-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .coin { color: var(--coin); }
+        .apple { color: var(--apple); }
+        .bear { color: var(--bear); }
+
+        .currency-amount {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .tap-area {
+            background-color: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exchange-building {
+            font-size: 80px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+
+        .exchange-building:active {
+            transform: scale(0.95);
+        }
+
+        .tap-text {
+            position: absolute;
+            color: var(--coin);
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 1s forwards;
+            opacity: 0;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 10px 16px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            opacity: 1;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .upgrades-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .upgrade-card {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .upgrade-card:active {
+            transform: scale(0.98);
+            background-color: var(--bg-tertiary);
+        }
+
+        .upgrade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .upgrade-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .upgrade-title {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .upgrade-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .upgrade-cost {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cost-item {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+
+        .cost-amount {
+            margin-left: 5px;
+        }
+
+        .tasks-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .task-card {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .task-progress {
+            height: 5px;
+            background-color: var(--bg-tertiary);
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .task-progress-bar {
+            height: 100%;
+            background-color: var(--accent);
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+
+        .task-reward {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .task-claim-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .task-claim-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin: 20px 0 15px;
+            color: var(--text-primary);
+        }
+
+        .back-button {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--accent);
+            cursor: pointer;
+        }
+
+        .back-button svg {
+            margin-right: 8px;
+        }
+
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .loader-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--bg-tertiary);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Нижняя навигация */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--bg-secondary);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            border-top: 1px solid var(--border);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px 10px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .nav-item.active {
+            opacity: 1;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+        }
+
+        /* Стили для игры с мишкой */
+        .bear-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .bear-display {
+            font-size: 100px;
+            margin-bottom: 15px;
+            transition: transform 0.3s;
+        }
+
+        .bear-info {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .bear-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .bear-age {
+            color: var(--text-secondary);
+        }
+
+        .bear-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .stat-item {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .bear-shop {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .shop-item {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .shop-item:active {
+            transform: scale(0.98);
+        }
+
+        .shop-item-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .shop-item-cost {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        /* Анимации для мишки */
+        @keyframes bearHappy {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .bear-happy {
+            animation: bearHappy 1s ease-in-out;
+        }
+
+        @keyframes bearEat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .bear-eating {
+            animation: bearEat 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Yes KRP Тапалка</div>
+            <div id="refresh-btn" style="cursor: pointer;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4C7.58 4 4.01 7.58 4.01 12C4.01 16.42 7.58 20 12 20C15.73 20 18.84 17.45 19.73 14H17.65C16.83 16.33 14.61 18 12 18C8.69 18 6 15.31 6 12C6 8.69 8.69 6 12 6C13.66 6 15.14 6.69 16.22 7.78L13 11H20V4L17.65 6.35Z" fill="white"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="currency-display">
+            <div class="currency-item">
+                <div class="currency-icon coin">🪙</div>
+                <div class="currency-amount" id="coins-count">0</div>
+            </div>
+            <div class="currency-item">
+                <div class="currency-icon apple">🍎</div>
+                <div class="currency-amount" id="apples-count">0</div>
+            </div>
+            <div class="currency-item">
+                <div class="currency-icon bear">🧸</div>
+                <div class="currency-amount" id="bears-count">0</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="tap">Тапалка</div>
+            <div class="tab" data-tab="upgrades">Улучшения</div>
+            <div class="tab" data-tab="tasks">Задания</div>
+            <div class="tab" data-tab="stocks">Акции</div>
+            <div class="tab" data-tab="portfolio">Портфель</div>
+            <div class="tab" data-tab="bear">Мой мишка</div>
+        </div>
+
+        <div id="tap-view">
+            <div class="tap-area">
+                <div class="exchange-building" id="exchange-building">🏦</div>
+            </div>
+            
+            <div class="section-title">Статистика</div>
+            <div class="currency-item">
+                <div>Всего тапов: <span id="total-taps">0</span></div>
+                <div>Тапов в секунду: <span id="taps-per-second">0</span></div>
+                <div>Уровень биржи: <span id="exchange-level">1</span></div>
+            </div>
+        </div>
+
+        <div id="upgrades-view" class="hidden">
+            <div class="section-title">Улучшения биржи</div>
+            <div class="upgrades-grid" id="upgrades-container">
+                <!-- Улучшения будут добавлены через JavaScript -->
+            </div>
+        </div>
+
+        <div id="tasks-view" class="hidden">
+            <div class="section-title">Ежедневные задания</div>
+            <div class="tasks-list" id="tasks-container">
+                <!-- Задания будут добавлены через JavaScript -->
+            </div>
+        </div>
+
+        <div id="stocks-view" class="hidden">
+            <div class="section-title">Доступные акции</div>
+            <div class="stock-list" id="stock-list">
+                <div class="loader">
+                    <div class="loader-spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="portfolio-view" class="hidden">
+            <div class="section-title">Ваш портфель</div>
+            <div id="portfolio-content">
+                <div class="loader">
+                    <div class="loader-spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="bear-view" class="hidden">
+            <div class="bear-container">
+                <div class="bear-display" id="bear-display">🧸</div>
+                <div class="bear-info">
+                    <div class="bear-name" id="bear-name">Мой мишка</div>
+                    <div class="bear-age" id="bear-age">Возраст: 0 лет</div>
+                </div>
+                
+                <div class="bear-stats">
+                    <div class="stat-item">
+                        <div>Сытость</div>
+                        <div class="stat-value" id="bear-hunger">100%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Счастье</div>
+                        <div class="stat-value" id="bear-happiness">100%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Здоровье</div>
+                        <div class="stat-value" id="bear-health">100%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Энергия</div>
+                        <div class="stat-value" id="bear-energy">100%</div>
+                    </div>
+                </div>
+                
+                <div class="section-title">Магазин для мишки</div>
+                <div class="bear-shop" id="bear-shop">
+                    <!-- Товары будут добавлены через JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div id="stock-detail-view" class="hidden">
+            <!-- Контент детального просмотра акции -->
+        </div>
+    </div>
+
+    <!-- Нижняя навигация -->
+    <div class="bottom-nav">
+        <div class="nav-item active" data-view="tap">
+            <div class="nav-icon">🎮</div>
+            <div class="nav-label">Играть</div>
+        </div>
+        <div class="nav-item" data-view="stocks">
+            <div class="nav-icon">📈</div>
+            <div class="nav-label">Акции</div>
+        </div>
+        <div class="nav-item" data-view="portfolio">
+            <div class="nav-icon">💰</div>
+            <div class="nav-label">Кошелек</div>
+        </div>
+        <div class="nav-item" data-view="bear">
+            <div class="nav-icon">🧸</div>
+            <div class="nav-label">Мой мишка</div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        // Глобальные переменные для тапалки
+        let gameState = {
+            coins: 1000,
+            apples: 50,
+            bears: 5,
+            totalTaps: 0,
+            exchangeLevel: 1,
+            tapsPerSecond: 0,
+            upgrades: [],
+            tasks: [],
+            lastSave: Date.now(),
+            // Данные для мишки
+            bear: {
+                name: "Мой мишка",
+                age: 0, // в годах
+                hunger: 100,
+                happiness: 100,
+                health: 100,
+                energy: 100,
+                appearance: "baby", // baby, toddler, child, teen, adult
+                lastUpdate: Date.now()
+            }
+        };
+
+        // Определяем улучшения
+        const upgradesData = [
+            {
+                id: 1,
+                name: "Улучшенный интерфейс",
+                description: "Увеличивает количество монет за тап на 1",
+                icon: "💻",
+                cost: { coins: 10, apples: 0, bears: 0 },
+                effect: { tapValue: 1 },
+                owned: 0
+            },
+            {
+                id: 2,
+                name: "Быстрые серверы",
+                description: "Увеличивает базовый доход на 0.5 монет в секунду",
+                icon: "🚀",
+                cost: { coins: 50, apples: 0, bears: 0 },
+                effect: { passiveIncome: 0.5 },
+                owned: 0
+            },
+            {
+                id: 3,
+                name: "Рекламная кампания",
+                description: "Увеличивает шанс получения яблок",
+                icon: "📢",
+                cost: { coins: 100, apples: 1, bears: 0 },
+                effect: { appleChance: 0.1 },
+                owned: 0
+            },
+            {
+                id: 4,
+                name: "Мобильное приложение",
+                description: "Увеличивает пассивный доход на 1 монету в секунду",
+                icon: "📱",
+                cost: { coins: 200, apples: 2, bears: 0 },
+                effect: { passiveIncome: 1 },
+                owned: 0
+            },
+            {
+                id: 5,
+                name: "Аналитический отдел",
+                description: "Увеличивает доход от акций на 5%",
+                icon: "📊",
+                cost: { coins: 500, apples: 5, bears: 0 },
+                effect: { stockIncome: 0.05 },
+                owned: 0
+            },
+            {
+                id: 6,
+                name: "ИИ-трейдер",
+                description: "Увеличивает пассивный доход на 5 монет в секунду",
+                icon: "🤖",
+                cost: { coins: 1000, apples: 10, bears: 1 },
+                effect: { passiveIncome: 5 },
+                owned: 0
+            }
+        ];
+
+        // Определяем задания
+        const tasksData = [
+            {
+                id: 1,
+                name: "Новичок тапера",
+                description: "Сделайте 100 тапов",
+                goal: 100,
+                progress: 0,
+                reward: { coins: 10, apples: 0, bears: 0 },
+                completed: false,
+                claimed: false
+            },
+            {
+                id: 2,
+                name: "Сбор урожая",
+                description: "Заработайте 10 яблок",
+                goal: 10,
+                progress: 0,
+                reward: { coins: 50, apples: 1, bears: 0 },
+                completed: false,
+                claimed: false
+            },
+            {
+                id: 3,
+                name: "Ветеран тапов",
+                description: "Сделайте 10,000 тапов",
+                goal: 10000,
+                progress: 0,
+                reward: { coins: 500, apples: 5, bears: 1 },
+                completed: false,
+                claimed: false
+            },
+            {
+                id: 4,
+                name: "Улучшатель",
+                description: "Купите 5 улучшений",
+                goal: 5,
+                progress: 0,
+                reward: { coins: 200, apples: 3, bears: 1 },
+                completed: false,
+                claimed: false
+            },
+            {
+                id: 5,
+                name: "Инвестор",
+                description: "Заработайте 1000 монет с акций",
+                goal: 1000,
+                progress: 0,
+                reward: { coins: 1000, apples: 10, bears: 2 },
+                completed: false,
+                claimed: false
+            }
+        ];
+
+        // Товары для мишки
+        const bearShopItems = [
+            {
+                id: 1,
+                name: "Еда",
+                description: "Вкусная еда для мишки",
+                icon: "🍎",
+                cost: { coins: 0, apples: 1, bears: 0 },
+                effect: { hunger: 20, happiness: 5 }
+            },
+            {
+                id: 2,
+                name: "Игрушка",
+                description: "Новая игрушка для развлечений",
+                icon: "🎲",
+                cost: { coins: 10, apples: 0, bears: 0 },
+                effect: { happiness: 15, energy: -5 }
+            },
+            {
+                id: 3,
+                name: "Лекарство",
+                description: "Лечение для мишки",
+                icon: "💊",
+                cost: { coins: 20, apples: 0, bears: 0 },
+                effect: { health: 25, happiness: -5 }
+            },
+            {
+                id: 4,
+                name: "Кровать",
+                description: "Удобная кровать для отдыха",
+                icon: "🛏️",
+                cost: { coins: 50, apples: 0, bears: 0 },
+                effect: { energy: 30, happiness: 10 }
+            },
+            {
+                id: 5,
+                name: "Одежда",
+                description: "Стильная одежда для мишки",
+                icon: "👕",
+                cost: { coins: 30, apples: 2, bears: 0 },
+                effect: { happiness: 20, health: 5 }
+            },
+            {
+                id: 6,
+                name: "Витамины",
+                description: "Полезные витамины для здоровья",
+                icon: "💊",
+                cost: { coins: 25, apples: 1, bears: 0 },
+                effect: { health: 15, energy: 10 }
+            }
+        ];
+
+        // Инициализация приложения
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка сохранённых данных
+            loadGameState();
+            
+            // Установка обработчиков событий
+            setupEventListeners();
+            
+            // Инициализация интерфейса
+            renderGameState();
+            renderUpgrades();
+            renderTasks();
+            renderBearShop();
+            updateBearDisplay();
+            
+            // Запуск игрового цикла
+            setInterval(gameLoop, 1000);
+            setInterval(bearLoop, 2000); // Отдельный цикл для мишки
+        });
+        
+        function setupEventListeners() {
+            // Обработчики вкладок
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const tabName = this.getAttribute('data-tab');
+                    document.querySelectorAll('[id$="-view"]').forEach(view => {
+                        view.classList.add('hidden');
+                    });
+                    document.getElementById(`${tabName}-view`).classList.remove('hidden');
+                });
+            });
+            
+            // Обработчик тапа по бирже
+            const exchangeBuilding = document.getElementById('exchange-building');
+            exchangeBuilding.addEventListener('click', handleTap);
+            
+            // Кнопка обновления
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                // Здесь можно добавить логику обновления данных
+            });
+            
+            // Обработчики нижней навигации
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const viewName = this.getAttribute('data-view');
+                    
+                    // Активируем соответствующую вкладку
+                    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Скрываем все view
+                    document.querySelectorAll('[id$="-view"]').forEach(view => {
+                        view.classList.add('hidden');
+                    });
+                    
+                    // Показываем нужное view
+                    if (viewName === 'tap') {
+                        document.getElementById('tap-view').classList.remove('hidden');
+                        // Активируем вкладку Тапалка
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        document.querySelector('.tab[data-tab="tap"]').classList.add('active');
+                    } else if (viewName === 'stocks') {
+                        document.getElementById('stocks-view').classList.remove('hidden');
+                    } else if (viewName === 'portfolio') {
+                        document.getElementById('portfolio-view').classList.remove('hidden');
+                    } else if (viewName === 'bear') {
+                        document.getElementById('bear-view').classList.remove('hidden');
+                        // Активируем вкладку Мишка
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        document.querySelector('.tab[data-tab="bear"]').classList.add('active');
+                    }
+                });
+            });
+        }
+        
+        function handleTap(event) {
+            // Увеличиваем счётчик тапов
+            gameState.totalTaps++;
+            gameState.coins += calculateTapValue();
+            
+            // Создаем летающий текст с количеством монет
+            createTapText(event, `+${calculateTapValue()}`);
+            
+            // Проверяем, нужно ли выдать яблоко (каждые 1000 тапов)
+            if (gameState.totalTaps % 1000 === 0) {
+                gameState.apples++;
+                createTapText(event, '🍎 +1', 'apple');
+            }
+            
+            // Обновляем прогресс заданий
+            updateTaskProgress('tap', 1);
+            
+            // Сохраняем состояние и обновляем интерфейс
+            saveGameState();
+            renderGameState();
+        }
+        
+        function calculateTapValue() {
+            let baseValue = 1;
+            
+            // Учитываем улучшения, увеличивающие ценность тапа
+            upgradesData.forEach(upgrade => {
+                if (upgrade.owned > 0 && upgrade.effect.tapValue) {
+                    baseValue += upgrade.effect.tapValue * upgrade.owned;
+                }
+            });
+            
+            return baseValue;
+        }
+        
+        function calculatePassiveIncome() {
+            let income = 0;
+            
+            // Учитываем улучшения, добавляющие пассивный доход
+            upgradesData.forEach(upgrade => {
+                if (upgrade.owned > 0 && upgrade.effect.passiveIncome) {
+                    income += upgrade.effect.passiveIncome * upgrade.owned;
+                }
+            });
+            
+            gameState.tapsPerSecond = income;
+            return income;
+        }
+        
+        function createTapText(event, text, type = 'coin') {
+            const tapArea = document.querySelector('.tap-area');
+            const tapText = document.createElement('div');
+            tapText.className = 'tap-text';
+            tapText.textContent = text;
+            
+            if (type === 'coin') {
+                tapText.style.color = 'var(--coin)';
+            } else if (type === 'apple') {
+                tapText.style.color = 'var(--apple)';
+            }
+            
+            // Позиционируем текст рядом с местом тапа
+            const rect = tapArea.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            tapText.style.left = `${x}px`;
+            tapText.style.top = `${y}px`;
+            
+            tapArea.appendChild(tapText);
+            
+            // Удаляем текст после завершения анимации
+            setTimeout(() => {
+                tapText.remove();
+            }, 1000);
+        }
+        
+        function gameLoop() {
+            // Добавляем пассивный доход
+            const passiveIncome = calculatePassiveIncome();
+            gameState.coins += passiveIncome;
+            
+            // Сохраняем состояние каждые 30 секунд
+            if (Date.now() - gameState.lastSave > 30000) {
+                saveGameState();
+                gameState.lastSave = Date.now();
+            }
+            
+            // Обновляем интерфейс
+            renderGameState();
+        }
+        
+        function bearLoop() {
+            // Уменьшаем показатели мишки со временем
+            const now = Date.now();
+            const timePassed = (now - gameState.bear.lastUpdate) / 1000; // в секундах
+            
+            // Уменьшаем показатели (примерно на 1% каждые 2 минуты)
+            gameState.bear.hunger = Math.max(0, gameState.bear.hunger - 0.008 * timePassed);
+            gameState.bear.happiness = Math.max(0, gameState.bear.happiness - 0.005 * timePassed);
+            gameState.bear.energy = Math.max(0, gameState.bear.energy - 0.006 * timePassed);
+            
+            // Здоровье зависит от других показателей
+            if (gameState.bear.hunger < 30 || gameState.bear.happiness < 20) {
+                gameState.bear.health = Math.max(0, gameState.bear.health - 0.01 * timePassed);
+            } else if (gameState.bear.health < 100) {
+                gameState.bear.health = Math.min(100, gameState.bear.health + 0.005 * timePassed);
+            }
+            
+            // Обновляем время последнего изменения
+            gameState.bear.lastUpdate = now;
+            
+            // Обновляем отображение мишки
+            updateBearDisplay();
+        }
+        
+        function updateBearDisplay() {
+            // Обновляем внешний вид мишки в зависимости от возраста
+            let bearEmoji = "🧸";
+            let appearance = "baby";
+            
+            if (gameState.bear.age >= 0 && gameState.bear.age < 3) {
+                bearEmoji = "👶";
+                appearance = "baby";
+            } else if (gameState.bear.age >= 3 && gameState.bear.age < 6) {
+                bearEmoji = "🧒";
+                appearance = "toddler";
+            } else if (gameState.bear.age >= 6 && gameState.bear.age < 12) {
+                bearEmoji = "👦";
+                appearance = "child";
+            } else if (gameState.bear.age >= 12 && gameState.bear.age < 18) {
+                bearEmoji = "👨";
+                appearance = "teen";
+            } else if (gameState.bear.age >= 18) {
+                bearEmoji = "🧔";
+                appearance = "adult";
+            }
+            
+            // Обновляем emoji мишки
+            document.getElementById('bear-display').textContent = bearEmoji;
+            
+            // Обновляем статистику
+            document.getElementById('bear-name').textContent = gameState.bear.name;
+            document.getElementById('bear-age').textContent = `Возраст: ${gameState.bear.age} лет`;
+            document.getElementById('bear-hunger').textContent = `${Math.round(gameState.bear.hunger)}%`;
+            document.getElementById('bear-happiness').textContent = `${Math.round(gameState.bear.happiness)}%`;
+            document.getElementById('bear-health').textContent = `${Math.round(gameState.bear.health)}%`;
+            document.getElementById('bear-energy').textContent = `${Math.round(gameState.bear.energy)}%`;
+            
+            // Сохраняем текущий внешний вид
+            gameState.bear.appearance = appearance;
+        }
+        
+        function buyUpgrade(upgradeId) {
+            const upgrade = upgradesData.find(u => u.id === upgradeId);
+            
+            if (!upgrade) return;
+            
+            // Проверяем, хватает ли ресурсов
+            if (gameState.coins >= upgrade.cost.coins && 
+                gameState.apples >= upgrade.cost.apples && 
+                gameState.bears >= upgrade.cost.bears) {
+                
+                // Вычитаем стоимость
+                gameState.coins -= upgrade.cost.coins;
+                gameState.apples -= upgrade.cost.apples;
+                gameState.bears -= upgrade.cost.bears;
+                
+                // Увеличиваем счётчик улучшений
+                upgrade.owned++;
+                
+                // Увеличиваем стоимость улучшения (для следующей покупки)
+                upgrade.cost.coins = Math.round(upgrade.cost.coins * 1.5);
+                if (upgrade.cost.apples > 0) {
+                    upgrade.cost.apples = Math.round(upgrade.cost.apples * 1.2);
+                }
+                
+                // Обновляем прогресс заданий
+                updateTaskProgress('upgrade', 1);
+                
+                // Сохраняем и обновляем интерфейс
+                saveGameState();
+                renderGameState();
+                renderUpgrades();
+                
+                // Воспроизводим анимацию успешной покупки
+                const upgradeElement = document.getElementById(`upgrade-${upgradeId}`);
+                upgradeElement.classList.add('pulse');
+                setTimeout(() => {
+                    upgradeElement.classList.remove('pulse');
+                }, 300);
+            }
+        }
+        
+        function buyBearItem(itemId) {
+            const item = bearShopItems.find(i => i.id === itemId);
+            
+            if (!item) return;
+            
+            // Проверяем, хватает ли ресурсов
+            if (gameState.coins >= item.cost.coins && 
+                gameState.apples >= item.cost.apples && 
+                gameState.bears >= item.cost.bears) {
+                
+                // Вычитаем стоимость
+                gameState.coins -= item.cost.coins;
+                gameState.apples -= item.cost.apples;
+                gameState.bears -= item.cost.bears;
+                
+                // Применяем эффект предмета
+                if (item.effect.hunger) gameState.bear.hunger = Math.min(100, gameState.bear.hunger + item.effect.hunger);
+                if (item.effect.happiness) gameState.bear.happiness = Math.min(100, gameState.bear.happiness + item.effect.happiness);
+                if (item.effect.health) gameState.bear.health = Math.min(100, gameState.bear.health + item.effect.health);
+                if (item.effect.energy) gameState.bear.energy = Math.min(100, gameState.bear.energy + item.effect.energy);
+                
+                // Анимация для мишки
+                const bearDisplay = document.getElementById('bear-display');
+                if (item.effect.hunger) {
+                    bearDisplay.classList.add('bear-eating');
+                    setTimeout(() => bearDisplay.classList.remove('bear-eating'), 500);
+                } else {
+                    bearDisplay.classList.add('bear-happy');
+                    setTimeout(() => bearDisplay.classList.remove('bear-happy'), 1000);
+                }
+                
+                // Сохраняем и обновляем интерфейс
+                saveGameState();
+                renderGameState();
+                updateBearDisplay();
+            }
+        }
+        
+        function claimTaskReward(taskId) {
+            const task = tasksData.find(t => t.id === taskId);
+            
+            if (!task || !task.completed || task.claimed) return;
+            
+            // Выдаём награду
+            gameState.coins += task.reward.coins;
+            gameState.apples += task.reward.apples;
+            gameState.bears += task.reward.bears;
+            
+            // Отмечаем задание как выполненное
+            task.claimed = true;
+            
+            // Сохраняем и обновляем интерфейс
+            saveGameState();
+            renderGameState();
+            renderTasks();
+        }
+        
+        function updateTaskProgress(type, amount) {
+            tasksData.forEach(task => {
+                if (task.claimed) return;
+                
+                if (type === 'tap' && task.name.includes('тап')) {
+                    task.progress += amount;
+                } else if (type === 'apple' && task.name.includes('яблок')) {
+                    task.progress += amount;
+                } else if (type === 'upgrade' && task.name.includes('улучшений')) {
+                    task.progress += amount;
+                }
+                
+                // Проверяем, выполнено ли задание
+                if (task.progress >= task.goal) {
+                    task.completed = true;
+                }
+            });
+        }
+        
+        function renderGameState() {
+            // Обновляем отображение валют
+            document.getElementById('coins-count').textContent = Math.floor(gameState.coins);
+            document.getElementById('apples-count').textContent = gameState.apples;
+            document.getElementById('bears-count').textContent = gameState.bears;
+            
+            // Обновляем статистику
+            document.getElementById('total-taps').textContent = gameState.totalTaps;
+            document.getElementById('taps-per-second').textContent = gameState.tapsPerSecond.toFixed(1);
+            document.getElementById('exchange-level').textContent = gameState.exchangeLevel;
+        }
+        
+        function renderUpgrades() {
+            const container = document.getElementById('upgrades-container');
+            container.innerHTML = '';
+            
+            upgradesData.forEach(upgrade => {
+                const upgradeElement = document.createElement('div');
+                upgradeElement.className = 'upgrade-card';
+                upgradeElement.id = `upgrade-${upgrade.id}`;
+                
+                upgradeElement.innerHTML = `
+                    <div class="upgrade-header">
+                        <div class="upgrade-icon">${upgrade.icon}</div>
+                        <div class="upgrade-title">${upgrade.name}</div>
+                        <div class="upgrade-owned">${upgrade.owned}</div>
+                    </div>
+                    <div class="upgrade-description">${upgrade.description}</div>
+                    <div class="upgrade-cost">
+                        ${upgrade.cost.coins > 0 ? `
+                            <div class="cost-item">
+                                <span class="currency-icon coin">🪙</span>
+                                <span class="cost-amount">${upgrade.cost.coins}</span>
+                            </div>
+                        ` : ''}
+                        ${upgrade.cost.apples > 0 ? `
+                            <div class="cost-item">
+                                <span class="currency-icon apple">🍎</span>
+                                <span class="cost-amount">${upgrade.cost.apples}</span>
+                            </div>
+                        ` : ''}
+                        ${upgrade.cost.bears > 0 ? `
+                            <div class="cost-item">
+                                <span class="currency-icon bear">🧸</span>
+                                <span class="cost-amount">${upgrade.cost.bears}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                upgradeElement.addEventListener('click', () => buyUpgrade(upgrade.id));
+                container.appendChild(upgradeElement);
+            });
+        }
+        
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+            
+            tasksData.forEach(task => {
+                const progressPercent = Math.min(100, (task.progress / task.goal) * 100);
+                const canClaim = task.completed && !task.claimed;
+                
+                const taskElement = document.createElement('div');
+                taskElement.className = 'task-card';
+                
+                taskElement.innerHTML = `
+                    <div class="task-name">${task.name}</div>
+                    <div class="task-description">${task.description}</div>
+                    <div class="task-progress">
+                        <div class="task-progress-bar" style="width: ${progressPercent}%"></div>
+                    </div>
+                    <div class="task-progress-text">${task.progress}/${task.goal}</div>
+                    <div class="task-reward">
+                        ${task.reward.coins > 0 ? `
+                            <div class="cost-item">
+                                <span class="currency-icon coin">🪙</span>
+                                <span class="cost-amount">${task.reward.coins}</span>
+                            </div>
+                        ` : ''}
+                        ${task.reward.apples > 0 ? `
+                            <div class="cost-item">
+                                <span class="currency-icon apple">🍎</span>
+                                <span class="cost-amount">${task.reward.apples}</span>
+                            </div>
+                        ` : ''}
+                        ${task.reward.bears > 0 ? `
+                            <div class="cost-item">
+                                <span class="currency-icon bear">🧸</span>
+                                <span class="cost-amount">${task.reward.bears}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <button class="task-claim-btn" ${canClaim ? '' : 'disabled'}>
+                        ${canClaim ? 'Забрать награду' : (task.claimed ? 'Награда получена' : 'Не выполнено')}
+                    </button>
+                `;
+                
+                if (canClaim) {
+                    const claimBtn = taskElement.querySelector('.task-claim-btn');
+                    claimBtn.addEventListener('click', () => claimTaskReward(task.id));
+                }
+                
+                container.appendChild(taskElement);
+            });
+        }
+        
+        function renderBearShop() {
+            const container = document.getElementById('bear-shop');
+            container.innerHTML = '';
+            
+            bearShopItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'shop-item';
+                itemElement.id = `bear-item-${item.id}`;
+                
+                itemElement.innerHTML = `
+                    <div class="shop-item-icon">${item.icon}</div>
+                    <div class="shop-item-name">${item.name}</div>
+                    <div class="shop-item-description">${item.description}</div>
+                    <div class="shop-item-cost">
+                        ${item.cost.coins > 0 ? `
+                            <div class="cost-item">
+                                <span class="currency-icon coin">🪙</span>
+                                <span class="cost-amount">${item.cost.coins}</span>
+                            </div>
+                        ` : ''}
+                        ${item.cost.apples > 0 ? `
+                            <div class="cost-item">
+                                <span class="currency-icon apple">🍎</span>
+                                <span class="cost-amount">${item.cost.apples}</span>
+                            </div>
+                        ` : ''}
+                        ${item.cost.bears > 0 ? `
+                            <div class="cost-item">
+                                <span class="currency-icon bear">🧸</span>
+                                <span class="cost-amount">${item.cost.bears}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                itemElement.addEventListener('click', () => buyBearItem(item.id));
+                container.appendChild(itemElement);
+            });
+        }
+        
+        function loadGameState() {
+            const savedState = localStorage.getItem('exchangeGameState');
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                
+                // Восстанавливаем основные данные
+                gameState.coins = parsedState.coins || 0;
+                gameState.apples = parsedState.apples || 0;
+                gameState.bears = parsedState.bears || 0;
+                gameState.totalTaps = parsedState.totalTaps || 0;
+                gameState.exchangeLevel = parsedState.exchangeLevel || 1;
+                gameState.tapsPerSecond = parsedState.tapsPerSecond || 0;
+                
+                // Восстанавливаем данные мишки
+                if (parsedState.bear) {
+                    gameState.bear = parsedState.bear;
+                }
+                
+                // Восстанавливаем улучшения
+                if (parsedState.upgrades) {
+                    parsedState.upgrades.forEach(savedUpgrade => {
+                        const upgrade = upgradesData.find(u => u.id === savedUpgrade.id);
+                        if (upgrade) {
+                            upgrade.owned = savedUpgrade.owned || 0;
+                            upgrade.cost = savedUpgrade.cost || upgrade.cost;
+                        }
+                    });
+                }
+                
+                // Восстанавливаем задания
+                if (parsedState.tasks) {
+                    parsedState.tasks.forEach(savedTask => {
+                        const task = tasksData.find(t => t.id === savedTask.id);
+                        if (task) {
+                            task.progress = savedTask.progress || 0;
+                            task.completed = savedTask.completed || false;
+                            task.claimed = savedTask.claimed || false;
+                        }
+                    });
+                }
+            }
+        }
+        
+        function saveGameState() {
+            // Подготавливаем данные для сохранения
+            const stateToSave = {
+                coins: gameState.coins,
+                apples: gameState.apples,
+                bears: gameState.bears,
+                totalTaps: gameState.totalTaps,
+                exchangeLevel: gameState.exchangeLevel,
+                tapsPerSecond: gameState.tapsPerSecond,
+                bear: gameState.bear,
+                upgrades: upgradesData.map(u => ({
+                    id: u.id,
+                    owned: u.owned,
+                    cost: u.cost
+                })),
+                tasks: tasksData.map(t => ({
+                    id: t.id,
+                    progress: t.progress,
+                    completed: t.completed,
+                    claimed: t.claimed
+                })),
+                lastSave: Date.now()
+            };
+            
+            // Сохраняем в localStorage
+            localStorage.setItem('exchangeGameState', JSON.stringify(stateToSave));
+        }
+    </script>
+</body>
+</html>
